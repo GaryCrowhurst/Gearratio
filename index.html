@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Gear Ratio Learning App</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+        
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input, select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .visualization {
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .powertrain {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        .component {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            position: relative;
+        }
+        
+        .component-visual {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .rotation-marker {
+            position: absolute;
+            width: 5px;
+            height: 40%;
+            background-color: white;
+            transform-origin: center bottom;
+        }
+        
+        .component-name {
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .component-value {
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .connector {
+            height: 2px;
+            flex-grow: 1;
+            background-color: var(--dark);
+            margin-top: 40px;
+        }
+        
+        .info-panel {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .info-content h3 {
+            margin-top: 10px;
+            text-align: left;
+        }
+        
+        .info-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .info-tab {
+            padding: 8px 15px;
+            background-color: #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .info-tab.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .info-tab:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .car-visual {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .car {
+            position: relative;
+            width: 200px;
+            height: 80px;
+            background-color: var(--primary);
+            border-radius: 20px 60px 10px 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .wheel {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 50%;
+            bottom: -20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        
+        .wheel-front {
+            right: 30px;
+        }
+        
+        .wheel-back {
+            left: 30px;
+        }
+        
+        .wheel-marker {
+            position: absolute;
+            width: 4px;
+            height: 20px;
+            background-color: white;
+            top: 0;
+            left: 50%;
+            transform-origin: bottom center;
+        }
+        
+        .windshield {
+            position: absolute;
+            width: 60px;
+            height: 35px;
+            background-color: rgba(255, 255, 255, 0.8);
+            top: 5px;
+            right: 40px;
+            transform: skewX(-30deg);
+            border-radius: 5px;
+        }
+        
+        .road {
+            height: 20px;
+            width: 100%;
+            background-color: #555;
+            border-radius: 5px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .road-marker {
+            position: absolute;
+            height: 5px;
+            width: 30px;
+            background-color: white;
+            top: 50%;
+            transform: translateY(-50%);
+            animation: roadMove linear infinite;
+        }
+        
+        @keyframes roadMove {
+            0% {
+                transform: translateY(-50%) translateX(100vw);
+            }
+            100% {
+                transform: translateY(-50%) translateX(-100px);
+            }
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .speed-indicator {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .exercise-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .exercise {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .exercise-question {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .exercise-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .exercise-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .exercise-option input {
+            margin-right: 5px;
+        }
+        
+        .exercise-feedback {
+            display: none;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        .exercise-feedback.correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-left: 3px solid #2ecc71;
+        }
+        
+        .exercise-feedback.incorrect {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid #e74c3c;
+        }
+        
+        .exercise-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .exercise-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .exercise-calculation {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .exercise-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .exercise-input input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .exercise-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .exercise-score {
+            font-weight: bold;
+        }
+        
+        .next-exercise {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .component {
+                min-width: 80px;
+            }
+            
+            .component-visual {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .control-group {
+                min-width: 120px;
+            }
+            
+            .car {
+                width: 150px;
+                height: 60px;
+            }
+            
+            .wheel {
+                width: 30px;
+                height: 30px;
+                bottom: -15px;
+            }
+            
+            .wheel-marker {
+                height: 15px;
+            }
+            
+            .windshield {
+                width: 40px;
+                height: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Car Gear Ratio Learning App</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="engine-rpm">Engine RPM</label>
+                <input type="range" id="engine-rpm" min="800" max="6000" step="100" value="2000">
+                <span id="engine-rpm-value">2000 RPM</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="gear-select">Current Gear</label>
+                <select id="gear-select">
+                    <option value="1">1st Gear</option>
+                    <option value="2">2nd Gear</option>
+                    <option value="3">3rd Gear</option>
+                    <option value="4">4th Gear</option>
+                    <option value="5">5th Gear</option>
+                    <option value="R">Reverse</option>
+                    <option value="N">Neutral</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="differential-ratio">Differential Ratio</label>
+                <select id="differential-ratio">
+                    <option value="3.42">3.42:1 (Performance)</option>
+                    <option value="3.07" selected>3.07:1 (Standard)</option>
+                    <option value="2.73">2.73:1 (Economy)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="visualization">
+            <div class="powertrain">
+                <div class="component">
+                    <div class="component-visual" style="background-color: #e74c3c;">
+                        <div class="rotation-marker" id="engine-marker"></div>
+                    </div>
+                    <div class="component-name">Engine</div>
+                    <div class="component-value" id="engine-value">2000 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #f39c12;">
+                        <div class="rotation-marker" id="flywheel-marker"></div>
+                    </div>
+                    <div class="component-name">Flywheel</div>
+                    <div class="component-value" id="flywheel-value">2000 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #f1c40f;">
+                        <div class="rotation-marker" id="clutch-marker"></div>
+                    </div>
+                    <div class="component-name">Clutch</div>
+                    <div class="component-value" id="clutch-value">2000 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #2ecc71;">
+                        <div class="rotation-marker" id="input-shaft-marker"></div>
+                    </div>
+                    <div class="component-name">Input Shaft</div>
+                    <div class="component-value" id="input-shaft-value">2000 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #27ae60;">
+                        <div class="rotation-marker" id="output-shaft-marker"></div>
+                    </div>
+                    <div class="component-name">Output Shaft</div>
+                    <div class="component-value" id="output-shaft-value">500 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #3498db;">
+                        <div class="rotation-marker" id="driveshaft-marker"></div>
+                    </div>
+                    <div class="component-name">Driveshaft</div>
+                    <div class="component-value" id="driveshaft-value">500 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #2980b9;">
+                        <div class="rotation-marker" id="differential-marker"></div>
+                    </div>
+                    <div class="component-name">Differential</div>
+                    <div class="component-value" id="differential-value">500 RPM</div>
+                </div>
+                
+                <div class="connector"></div>
+                
+                <div class="component">
+                    <div class="component-visual" style="background-color: #9b59b6;">
+                        <div class="rotation-marker" id="wheels-marker"></div>
+                    </div>
+                    <div class="component-name">Wheels</div>
+                    <div class="component-value" id="wheels-value">163 RPM</div>
+                </div>
+            </div>
+            
+            <div class="car-visual">
+                <div class="car">
+                    <div class="windshield"></div>
+                    <div class="wheel wheel-front">
+                        <div class="wheel-marker" id="front-wheel-marker"></div>
+                    </div>
+                    <div class="wheel wheel-back">
+                        <div class="wheel-marker" id="back-wheel-marker"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="road">
+                <div class="road-marker" id="road-marker-1"></div>
+                <div class="road-marker" id="road-marker-2" style="left: 25%;"></div>
+                <div class="road-marker" id="road-marker-3" style="left: 50%;"></div>
+                <div class="road-marker" id="road-marker-4" style="left: 75%;"></div>
+            </div>
+            
+            <div class="speed-indicator">
+                Vehicle Speed: <span id="speed-value">0</span> mph
+            </div>
+        </div>
+        
+        <div class="info-panel">
+            <div class="info-tabs">
+                <div class="info-tab active" data-component="engine">Engine</div>
+                <div class="info-tab" data-component="flywheel">Flywheel</div>
+                <div class="info-tab" data-component="clutch">Clutch</div>
+                <div class="info-tab" data-component="transmission">Transmission</div>
+                <div class="info-tab" data-component="differential">Differential</div>
+                <div class="info-tab" data-component="wheels">Wheels</div>
+                <div class="info-tab" data-component="gears">Gear Ratios</div>
+                <div class="info-tab" data-component="exercises">Exercises</div>
+            </div>
+            
+            <div class="info-content" id="component-info">
+                <h3>Engine</h3>
+                <p>The engine is the heart of your vehicle. It converts fuel into rotational energy measured in RPM (Revolutions Per Minute).</p>
+                <p>The engine's RPM is controlled by the accelerator pedal and regulated by the ECU (Engine Control Unit).</p>
+                <p>Most engines operate between 800 RPM (idle) and 6000-7000 RPM (redline).</p>
+                <p>Try adjusting the engine RPM slider to see how it affects the entire powertrain!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vehicle data
+        const gearRatios = {
+            1: 3.545,   // 1st gear ratio
+            2: 2.053,   // 2nd gear ratio
+            3: 1.336,   // 3rd gear ratio
+            4: 0.976,   // 4th gear ratio
+            5: 0.778,   // 5th gear ratio
+            R: -3.333,  // Reverse gear ratio
+            N: 0        // Neutral (no ratio)
+        };
+        
+        const wheelDiameter = 0.6604; // meters (26 inches)
+        const wheelCircumference = Math.PI * wheelDiameter; // meters
+        
+        // DOM Elements
+        const engineRpmInput = document.getElementById('engine-rpm');
+        const engineRpmValue = document.getElementById('engine-rpm-value');
+        const gearSelect = document.getElementById('gear-select');
+        const differentialRatioSelect = document.getElementById('differential-ratio');
+        const speedValue = document.getElementById('speed-value');
+        
+        // Component value displays
+        const engineValue = document.getElementById('engine-value');
+        const flywheelValue = document.getElementById('flywheel-value');
+        const clutchValue = document.getElementById('clutch-value');
+        const inputShaftValue = document.getElementById('input-shaft-value');
+        const outputShaftValue = document.getElementById('output-shaft-value');
+        const driveshaftValue = document.getElementById('driveshaft-value');
+        const differentialValue = document.getElementById('differential-value');
+        const wheelsValue = document.getElementById('wheels-value');
+        
+        // Rotation markers
+        const engineMarker = document.getElementById('engine-marker');
+        const flywheelMarker = document.getElementById('flywheel-marker');
+        const clutchMarker = document.getElementById('clutch-marker');
+        const inputShaftMarker = document.getElementById('input-shaft-marker');
+        const outputShaftMarker = document.getElementById('output-shaft-marker');
+        const driveshaftMarker = document.getElementById('driveshaft-marker');
+        const differentialMarker = document.getElementById('differential-marker');
+        const wheelsMarker = document.getElementById('wheels-marker');
+        const frontWheelMarker = document.getElementById('front-wheel-marker');
+        const backWheelMarker = document.getElementById('back-wheel-marker');
+        
+        // Road markers
+        const roadMarker1 = document.getElementById('road-marker-1');
+        const roadMarker2 = document.getElementById('road-marker-2');
+        const roadMarker3 = document.getElementById('road-marker-3');
+        const roadMarker4 = document.getElementById('road-marker-4');
+        
+        // Info panel
+        const infoTabs = document.querySelectorAll('.info-tab');
+        const componentInfo = document.getElementById('component-info');
+        
+        // Component info content
+        const componentInfoContent = {
+            engine: `
+                <h3>Engine</h3>
+                <p>The engine is the heart of your vehicle. It converts fuel into rotational energy measured in RPM (Revolutions Per Minute).</p>
+                <p>The engine's RPM is controlled by the accelerator pedal and regulated by the ECU (Engine Control Unit).</p>
+                <p>Most engines operate between 800 RPM (idle) and 6000-7000 RPM (redline).</p>
+                <p>Try adjusting the engine RPM slider to see how it affects the entire powertrain!</p>
+            `,
+            flywheel: `
+                <h3>Flywheel</h3>
+                <p>The flywheel is a heavy disk attached to the engine's crankshaft. It serves several important functions:</p>
+                <ul>
+                    <li>Smooths out engine power pulses</li>
+                    <li>Stores rotational energy</li>
+                    <li>Provides a friction surface for the clutch</li>
+                </ul>
+                <p>The flywheel rotates at the same speed as the engine crankshaft.</p>
+            `,
+            clutch: `
+                <h3>Clutch</h3>
+                <p>The clutch consists of a friction plate and pressure plate that work together to connect or disconnect the engine from the transmission.</p>
+                <p>When engaged (clutch pedal up), the pressure plate presses the friction plate against the flywheel, transferring power.</p>
+                <p>When disengaged (clutch pedal down), the pressure plate releases pressure, allowing the engine and transmission to rotate independently.</p>
+                <p>Note: In Neutral gear, the clutch is engaged but no power is transferred through the transmission.</p>
+            `,
+            transmission: `
+                <h3>Transmission</h3>
+                <p>The transmission consists of the input shaft, gears, and output shaft.</p>
+                <p><strong>Input Shaft:</strong> Connected to the clutch, it receives power from the engine.</p>
+                <p><strong>Gears:</strong> Various gear pairs with different tooth ratios create different gear ratios.</p>
+                <p><strong>Output Shaft:</strong> Connected to the driveshaft, it transfers power at adjusted RPM based on selected gear.</p>
+                <p>Try changing gears to see how different gear ratios affect vehicle speed and component rotation!</p>
+            `,
+            differential: `
+                <h3>Differential</h3>
+                <p>The differential serves two main purposes:</p>
+                <ul>
+                    <li>It provides a final gear reduction (differential ratio)</li>
+                    <li>It allows the wheels to rotate at different speeds when turning</li>
+                </ul>
+                <p>A lower differential ratio (like 2.73:1) is better for fuel economy and highway driving.</p>
+                <p>A higher differential ratio (like 3.42:1) provides better acceleration but lowers top speed.</p>
+                <p>Try changing the differential ratio to see how it affects wheel speed and vehicle speed!</p>
+            `,
+            wheels: `
+                <h3>Wheels</h3>
+                <p>The wheels are the final component in the powertrain, directly contacting the road.</p>
+                <p>Wheel rotation speed (RPM) depends on:</p>
+                <ul>
+                    <li>Engine RPM</li>
+                    <li>Transmission gear ratio</li>
+                    <li>Differential ratio</li>
+                </ul>
+                <p>Wheel size affects vehicle speed - larger wheels travel further per revolution.</p>
+                <p>This simulation uses 26-inch diameter wheels (66.04cm).</p>
+            `,
+            gears: `
+                <h3>Gear Ratios Explained</h3>
+                <p>Gear ratios determine how engine RPM is converted to wheel RPM:</p>
+                <ul>
+                    <li><strong>1st Gear (3.55:1):</strong> Highest torque, lowest speed. For starting from stop.</li>
+                    <li><strong>2nd Gear (2.05:1):</strong> Medium torque. For acceleration from low speed.</li>
+                    <li><strong>3rd Gear (1.34:1):</strong> Balanced torque and speed. For city driving.</li>
+                    <li><strong>4th Gear (0.98:1):</strong> Low torque, higher speed. For highway cruising.</li>
+                    <li><strong>5th Gear (0.78:1):</strong> Lowest torque, highest speed. For maximum fuel economy.</li>
+                    <li><strong>Reverse (3.33:1):</strong> Similar to 1st gear but in opposite direction.</li>
+                </ul>
+                <p>Lower gears (higher ratio numbers) provide more torque multiplication but lower speed.</p>
+                <p>Higher gears (lower ratio numbers) provide less torque multiplication but higher speed.</p>
+            `,
+            exercises: `
+                <h3>Student Exercises</h3>
+                <div class="exercise-progress">
+                    <div class="exercise-score">Score: <span id="exercise-score">0</span>/<span id="exercise-total">5</span></div>
+                    <div>Question: <span id="current-exercise">1</span> of 5</div>
+                </div>
+                
+                <div class="exercise-container" id="exercises-container">
+                    <!-- Exercise 1 -->
+                    <div class="exercise" id="exercise-1">
+                        <div class="exercise-question">1. If the engine is rotating at 3000 RPM in 2nd gear (ratio 2.05:1) with a differential ratio of 3.07:1, what is the approximate speed of the wheels in RPM?</div>
+                        <div class="exercise-options">
+                            <div class="exercise-option">
+                                <input type="radio" name="ex1" id="ex1-a" value="a">
+                                <label for="ex1-a">476 RPM</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex1" id="ex1-b" value="b">
+                                <label for="ex1-b">1463 RPM</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex1" id="ex1-c" value="c">
+                                <label for="ex1-c">6150 RPM</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex1" id="ex1-d" value="d">
+                                <label for="ex1-d">9210 RPM</label>
+                            </div>
+                        </div>
+                        <button class="exercise-button" onclick="checkAnswer(1, 'a')">Submit Answer</button>
+                        <div class="exercise-feedback" id="feedback-1"></div>
+                        <button class="exercise-button next-exercise" id="next-1" onclick="showNextExercise(1)">Next Question</button>
+                    </div>
+                    
+                    <!-- Exercise 2 -->
+                    <div class="exercise" id="exercise-2" style="display: none;">
+                        <div class="exercise-question">2. What is the main purpose of having different gear ratios in a transmission?</div>
+                        <div class="exercise-options">
+                            <div class="exercise-option">
+                                <input type="radio" name="ex2" id="ex2-a" value="a">
+                                <label for="ex2-a">To make the car look more stylish</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex2" id="ex2-b" value="b">
+                                <label for="ex2-b">To balance torque and speed for different driving conditions</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex2" id="ex2-c" value="c">
+                                <label for="ex2-c">To create more noise while driving</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex2" id="ex2-d" value="d">
+                                <label for="ex2-d">To make driving more complicated</label>
+                            </div>
+                        </div>
+                        <button class="exercise-button" onclick="checkAnswer(2, 'b')">Submit Answer</button>
+                        <div class="exercise-feedback" id="feedback-2"></div>
+                        <button class="exercise-button next-exercise" id="next-2" onclick="showNextExercise(2)">Next Question</button>
+                    </div>
+                    
+                    <!-- Exercise 3 -->
+                    <div class="exercise" id="exercise-3" style="display: none;">
+                        <div class="exercise-question">3. Calculate the vehicle speed: If your wheels are turning at 500 RPM and each wheel has a diameter of 26 inches (66.04 cm), what is the approximate speed in mph?</div>
+                        <div class="exercise-calculation">
+                            <div class="exercise-input">
+                                <input type="number" id="ex3-answer" placeholder="Enter mph">
+                                <span>mph</span>
+                            </div>
+                            <p>Hint: Speed = wheel circumference × wheel RPM × 60 min/hour / conversion factor</p>
+                        </div>
+                        <button class="exercise-button" onclick="checkCalculation(3, 48.8, 5)">Submit Answer</button>
+                        <div class="exercise-feedback" id="feedback-3"></div>
+                        <button class="exercise-button next-exercise" id="next-3" onclick="showNextExercise(3)">Next Question</button>
+                    </div>
+                    
+                    <!-- Exercise 4 -->
+                    <div class="exercise" id="exercise-4" style="display: none;">
+                        <div class="exercise-question">4. Which component connects or disconnects the engine from the transmission?</div>
+                        <div class="exercise-options">
+                            <div class="exercise-option">
+                                <input type="radio" name="ex4" id="ex4-a" value="a">
+                                <label for="ex4-a">Differential</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex4" id="ex4-b" value="b">
+                                <label for="ex4-b">Flywheel</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex4" id="ex4-c" value="c">
+                                <label for="ex4-c">Clutch</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex4" id="ex4-d" value="d">
+                                <label for="ex4-d">Driveshaft</label>
+                            </div>
+                        </div>
+                        <button class="exercise-button" onclick="checkAnswer(4, 'c')">Submit Answer</button>
+                        <div class="exercise-feedback" id="feedback-4"></div>
+                        <button class="exercise-button next-exercise" id="next-4" onclick="showNextExercise(4)">Next Question</button>
+                    </div>
+                    
+                    <!-- Exercise 5 -->
+                    <div class="exercise" id="exercise-5" style="display: none;">
+                        <div class="exercise-question">5. If you want better acceleration from a stop, which differential ratio would you choose?</div>
+                        <div class="exercise-options">
+                            <div class="exercise-option">
+                                <input type="radio" name="ex5" id="ex5-a" value="a">
+                                <label for="ex5-a">2.73:1 (Economy)</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex5" id="ex5-b" value="b">
+                                <label for="ex5-b">3.07:1 (Standard)</label>
+                            </div>
+                            <div class="exercise-option">
+                                <input type="radio" name="ex5" id="ex5-c" value="c">
+                                <label for="ex5-c">3.42:1 (Performance)</label>
+                            </div>
+                        </div>
+                        <button class="exercise-button" onclick="checkAnswer(5, 'c')">Submit Answer</button>
+                        <div class="exercise-feedback" id="feedback-5"></div>
+                        <div class="exercise-feedback" id="final-score" style="display: none; margin-top: 20px;">
+                            <h3>Exercise Complete!</h3>
+                            <p>Your final score: <span id="final-score-value">0</span>/5</p>
+                            <p>Try adjusting the simulation values to see if you can confirm your understanding!</p>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+        
+        // Initialize info tabs
+        infoTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                infoTabs.forEach(t => t.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Update content
+                const component = tab.getAttribute('data-component');
+                componentInfo.innerHTML = componentInfoContent[component];
+            });
+        });
+        
+        // Calculate and update component values
+        function updateComponents() {
+            const engineRpm = parseInt(engineRpmInput.value);
+            const currentGear = gearSelect.value;
+            const differentialRatio = parseFloat(differentialRatioSelect.value);
+            
+            const gearRatio = gearRatios[currentGear];
+            
+            // Calculate RPMs throughout the powertrain
+            const flywheelRpm = engineRpm;
+            const clutchRpm = engineRpm;
+            
+            // In neutral, input shaft rotates but doesn't transfer power
+            const inputShaftRpm = currentGear === 'N' ? 0 : engineRpm;
+            
+            // Calculate output shaft RPM based on gear ratio
+            const outputShaftRpm = inputShaftRpm / gearRatio;
+            
+            // Driveshaft rotates at the same RPM as the output shaft
+            const driveshaftRpm = outputShaftRpm;
+            
+            // Differential further reduces the RPM
+            const differentialOutputRpm = driveshaftRpm / differentialRatio;
+            
+            // Wheels rotate at the differential output RPM
+            const wheelRpm = differentialOutputRpm;
+            
+            // Calculate vehicle speed
+            // Speed = wheel circumference * wheel RPM * 60 min/hour / 1000 m/km
+            const speedKmh = wheelRpm * wheelCircumference * 60 / 1000;
+            // Convert to mph (1 km/h = 0.621371 mph)
+            const speedMph = speedKmh * 0.621371;
+            
+            // Update component value displays
+            engineValue.textContent = `${engineRpm.toFixed(0)} RPM`;
+            flywheelValue.textContent = `${flywheelRpm.toFixed(0)} RPM`;
+            clutchValue.textContent = `${clutchRpm.toFixed(0)} RPM`;
+            
+            if (currentGear === 'N') {
+                inputShaftValue.textContent = '0 RPM (Neutral)';
+                outputShaftValue.textContent = '0 RPM';
+                driveshaftValue.textContent = '0 RPM';
+                differentialValue.textContent = '0 RPM';
+                wheelsValue.textContent = '0 RPM';
+                speedValue.textContent = '0';
+            } else {
+                inputShaftValue.textContent = `${inputShaftRpm.toFixed(0)} RPM`;
+                outputShaftValue.textContent = `${Math.abs(outputShaftRpm).toFixed(0)} RPM`;
+                driveshaftValue.textContent = `${Math.abs(driveshaftRpm).toFixed(0)} RPM`;
+                differentialValue.textContent = `${Math.abs(differentialOutputRpm).toFixed(0)} RPM`;
+                wheelsValue.textContent = `${Math.abs(wheelRpm).toFixed(0)} RPM`;
+                speedValue.textContent = Math.abs(speedMph).toFixed(1);
+            }
+            
+            // Update RPM display
+            engineRpmValue.textContent = `${engineRpm} RPM`;
+            
+            // Set rotation animations
+            setRotationAnimation(engineMarker, engineRpm);
+            setRotationAnimation(flywheelMarker, flywheelRpm);
+            setRotationAnimation(clutchMarker, clutchRpm);
+            
+            if (currentGear === 'N') {
+                clearRotationAnimation(inputShaftMarker);
+                clearRotationAnimation(outputShaftMarker);
+                clearRotationAnimation(driveshaftMarker);
+                clearRotationAnimation(differentialMarker);
+                clearRotationAnimation(wheelsMarker);
+                clearRotationAnimation(frontWheelMarker);
+                clearRotationAnimation(backWheelMarker);
+                
+                // Stop road animation
+                roadMarker1.style.animationDuration = '0s';
+                roadMarker2.style.animationDuration = '0s';
+                roadMarker3.style.animationDuration = '0s';
+                roadMarker4.style.animationDuration = '0s';
+                roadMarker1.style.animationPlayState = 'paused';
+                roadMarker2.style.animationPlayState = 'paused';
+                roadMarker3.style.animationPlayState = 'paused';
+                roadMarker4.style.animationPlayState = 'paused';
+            } else {
+                // Set reverse rotation for reverse gear
+                const direction = currentGear === 'R' ? -1 : 1;
+                
+                setRotationAnimation(inputShaftMarker, inputShaftRpm);
+                setRotationAnimation(outputShaftMarker, outputShaftRpm);
+                setRotationAnimation(driveshaftMarker, driveshaftRpm);
+                setRotationAnimation(differentialMarker, differentialOutputRpm);
+                setRotationAnimation(wheelsMarker, wheelRpm);
+                setRotationAnimation(frontWheelMarker, wheelRpm);
+                setRotationAnimation(backWheelMarker, wheelRpm);
+                
+                // Set road animation speed
+                const animationDuration = Math.max(10 / Math.abs(speedMph) * 10, 0.5);
+                roadMarker1.style.animationDuration = `${animationDuration}s`;
+                roadMarker2.style.animationDuration = `${animationDuration}s`;
+                roadMarker3.style.animationDuration = `${animationDuration}s`;
+                roadMarker4.style.animationDuration = `${animationDuration}s`;
+                roadMarker1.style.animationPlayState = 'running';
+                roadMarker2.style.animationPlayState = 'running';
+                roadMarker3.style.animationPlayState = 'running';
+                roadMarker4.style.animationPlayState = 'running';
+                
+                // Set road direction
+                if (direction < 0) {
+                    roadMarker1.style.animationDirection = 'reverse';
+                    roadMarker2.style.animationDirection = 'reverse';
+                    roadMarker3.style.animationDirection = 'reverse';
+                    roadMarker4.style.animationDirection = 'reverse';
+                } else {
+                    roadMarker1.style.animationDirection = 'normal';
+                    roadMarker2.style.animationDirection = 'normal';
+                    roadMarker3.style.animationDirection = 'normal';
+                    roadMarker4.style.animationDirection = 'normal';
+                }
+            }
+        }
+        
+        // Set rotation animation
+        function setRotationAnimation(element, rpm) {
+            if (!element) return;
+            
+            // Clear any existing animation
+            element.style.animation = 'none';
+            
+            // Trigger reflow
+            void element.offsetWidth;
+            
+            if (rpm === 0) {
+                clearRotationAnimation(element);
+                return;
+            }
+            
+            // Set rotation direction
+            const direction = rpm < 0 ? 'reverse' : 'normal';
+            
+            // Calculate animation duration
+            // Lower duration = faster rotation
+            const duration = 60 / Math.abs(rpm);
+            
+            // Apply animation
+            element.style.animation = `rotate ${duration}s linear infinite ${direction}`;
+        }
+        
+        // Clear rotation animation
+        function clearRotationAnimation(element) {
+            if (!element) return;
+            element.style.animation = 'none';
+        }
+        
+        // Event listeners
+        engineRpmInput.addEventListener('input', updateComponents);
+        gearSelect.addEventListener('change', updateComponents);
+        differentialRatioSelect.addEventListener('change', updateComponents);
+        
+        // Initialize on page load
+        updateComponents();
+    </script>
+</body>
+</html>
